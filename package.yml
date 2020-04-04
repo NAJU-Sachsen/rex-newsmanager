@@ -1,0 +1,17 @@
+package: naju_newsmanager
+version: '0.0.1'
+author: NAJU Sachsen
+supportpage: https://github.com/NAJU-Sachsen/rex-newsmanager
+requires:
+  redaxo: '^5.10'
+  php: '>=7.1'
+  packages:
+    naju_group_accounts: '>=0.0.1'
+page:
+  title: 'Newsmanager'
+  icon: rex-icon fa-newspaper-o
+  subpages:
+    list:
+      title: 'Neuigkeiten'
+    compose:
+      title: 'Verfassen'
