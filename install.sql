@@ -5,7 +5,7 @@ create table if not exists naju_blog (
 	blog_group int(10) unsigned not null
 
 	primary key (blog_id),
-	foreign key fk_blog_group (blog_title) references naju_local_group(group_id)
+	foreign key fk_blog_group (blog_group) references naju_local_group(group_id)
 );
 
 create table if not exists naju_blog_article (
