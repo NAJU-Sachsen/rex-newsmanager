@@ -2,6 +2,6 @@
 
 $addon = rex_addon::get('naju_newsmanager');
 
-echo rex_view::title('Newsmanager');
+echo rex_view::title('Blogs');
 
 rex_be_controller::includeCurrentPageSubPath();
