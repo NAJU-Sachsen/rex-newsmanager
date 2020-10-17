@@ -1,77 +1,107 @@
 <?php
 
-define('ROWS_PER_PAGE', 25);
-define('PAGER_PARAM', 'offset');
+$func = rex_get('func', 'string', '');
+if ($func === 'archive') {
+    $article_id = rex_get('article_id', 'int', -1);
+    $sql = rex_sql::factory();
+    $sql->setTable('naju_blog_article')
+        ->setWhere('article_id = :id', ['id' => $article_id])
+        ->setValue('article_status', 'archived')
+        ->update();
+} elseif ($func === 'publish') {
+    $article_id = rex_get('article_id', 'int', -1);
+    $sql = rex_sql::factory();
+    $sql->setTable('naju_blog_article')
+        ->setWhere('article_id = :id', ['id' => $article_id])
+        ->setValue('article_status', 'published')
+        ->setDateTimeValue('article_published', time())
+        ->update();
+}
 
 $fragment = new rex_fragment();
-$pager = new rex_pager(ROWS_PER_PAGE, PAGER_PARAM);
-$sql = rex_sql::factory();
-
-// determine the total number of blog articles
-$query = 'SELECT COUNT(*) AS count FROM naju_blog_article';
-$sql->setQuery($query);
-$n_rows = $sql->getArray()[0]['count'];
-
-// prepare paged query
-$query = 'SELECT article_id, article_title, article_updated, article_status, blog_name, article_blog
-          FROM naju_blog_article JOIN naju_blog
-          ON article_blog = blog_id ';
-$query .= 'LIMIT ' . ROWS_PER_PAGE;
-$offset = rex_get(PAGER_PARAM, 'int', 0);
-if ($offset) {
-    $query .= ' OFFSET ' . $offset;
-}
-
-// fetch query result and prepare pagination
-$sql->setQuery($query);
-$res = $sql->getArray();
-$pager->setRowCount($n_rows);
-$pagination = new rex_fragment();
-$pagination->setVar('pager', $pager, false);
-$pagination->setVar('urlprovider', rex_url::currentBackendPage());
-
-// prepare page output
 $content = '';
-$content .= '<table class="table">
-                <thead>
-                    <tr>
-                        <th>Artikel</th>
-                        <th>Blog</th>
-                        <th>Aktualisiert</th>
-                        <th>Status</th>
-                        <th>Anpassen</th>
-                    </tr>
-                </thead>
-                <tbody>';
 
-foreach ($res as $article) {
-    $content .= '<tr>';
-    $content .= '<td>' . rex_escape($article['article_title']) . '</td>';
-    $content .= '<td>' . rex_escape($article['blog_name']) . '</td>';
-    $content .= '<td>' . rex_escape($article['article_updated']) . '</td>';
-    $content .= '<td>';
-    switch ($article['article_status']) {
-        case 'published':
-            $content .= 'online';
-            break;
-        case 'archived':
-            $content .= 'archiviert';
-            break;
-        case 'draft':
-            $content .= 'Entwurf';
-            break;
-        case 'pending':
-            $content .= 'wartet auf Veröffentlichung';
-            break;
-    }
-    $content .= '</td>';
-    $content .= '<td></td>'; // TODO: edit options
-    $content .= '</tr>';
+if (rex::getUser()->isAdmin()) {
+    $query = 'SELECT article_id, article_title, article_status, article_updated, article_published, blog_title, article_blog
+              FROM naju_blog_article JOIN naju_blog
+              ON article_blog = blog_id
+              ORDER BY article_updated DESC, article_published DESC, blog_title ASC, article_title ASC';
+} else {
+    $user_id = rex::getUser()->getId();
+    $query = 'SELECT a.article_id, a.article_title, a.article_updated, a.article_published, a.article_status, b.blog_title, a.article_blog
+              FROM naju_blog_article a JOIN naju_blog b JOIN naju_group_account acc
+              ON a.article_blog = b.blog_id AND b.blog_group = acc.group_id
+              WHERE acc.account_id = ' . rex_sql::factory()->escape($user_id) . '
+              ORDER BY a.article_updated DESC, a.article_published DESC, b.blog_title ASC, a.article_title ASC';
 }
+$list = rex_list::factory($query, 25, 'articles');
 
-$content .= '</tbody></table>';
+$th_icon = '<a href="' . rex_url::backendController(['page' => 'naju_newsmanager/compose']) . '" title="' . rex_i18n::msg('add') . '">';
+$th_icon .= '<i class="rex-icon rex-icon-add-action"></i></a>';
+$td_icon = '<i class="rex-icon fa-file-text-o"></i>';
+$actions = 'Aktionen';
 
-// show output
-$content .= $pagination->parse('core/navigations/pagination.php');
-$fragment->setVar('content', $content);
+$list->addColumn($th_icon, $td_icon, 0, ['<th class="rex-table-icon">###VALUE###</th>', '<td class="rex-table-icon">###VALUE###</td>']);
+$list->setColumnParams($th_icon, ['page' => 'naju_newsmanager/compose', 'func' => 'edit', 'article_id' => '###article_id###', 'start' => rex_get('start', 'int', 0)]);
+$list->addColumn($actions, '', -1, ['<th>###VALUE###</th>', '<td>###VALUE###</td>']);
+
+$list->removeColumn('article_id');
+$list->removeColumn('article_blog');
+
+$list->setColumnLabel('article_title', 'Titel');
+$list->setColumnLabel('article_status', 'Status');
+$list->setColumnLabel('article_updated', 'Aktualisiert');
+$list->setColumnLabel('article_published', 'Veröffentlicht');
+$list->setColumnLabel('blog_title', 'Blog');
+
+$list->setColumnFormat('article_status', 'custom', function($col_data) {
+    $status = $col_data['value'];
+    if ($status === 'published') {
+        return '<span class="rex-online"><i class="rex-icon rex-icon-online"></i> online</span>';
+    } elseif ($status === 'pending') {
+        return '<span class="text text-warning"><i class="rex-icon fa-clock-o"></i> geplant</span>';
+    } elseif ($status === 'draft') {
+        return '<i class="rex-icon fa-pencil"></i> Entwurf';
+    } elseif ($status === 'archived') {
+        return '<span class="text text-danger"><i class="rex-icon fa-archive"></i> archiviert</span>';
+    }
+    return $status;
+});
+
+$list->setColumnFormat($actions, 'custom', static function($params) {
+    $list = $params['list'];
+    $content = '';
+
+    $article_id = $list->getValue('article_id');
+    $article_status = $list->getValue('article_status');
+
+    $edit_url = rex_url::currentBackendPage(['page' => 'naju_newsmanager/compose', 'func' => 'edit', 'article_id' => $article_id, 'start' => rex_get('start', 'int', 0)]);
+    $content .= '<a href="' . $edit_url . '" class="text text-primary"><i class="rex-icon fa-pencil-square-o"></i> bearbeiten</a>' ;
+    $content .= '&nbsp;';
+
+    if (in_array($article_status, ['pending', 'draft'])) {
+        $content .= '<a href="' . rex_url::currentBackendPage(['func' => 'publish', 'article_id' => $article_id]) . '" class="text text-success"><i class="rex-icon fa-laptop"></i> jetzt veröffentlichen</a>';
+    } else {
+        $content .= '<span class="text text-muted"><i class="rex-icon fa-laptop"></i> jetzt veröffentlichen</span>';
+    }
+
+    $content .= '&nbsp;';
+
+    if ($article_status !== 'archived') {
+        $content .= '<a href="' . rex_url::currentBackendPage(['func' => 'archive', 'article_id' => $article_id]) . '"class="text text-danger" onclick="return confirm(\'Wirklich archivieren?\')"><i class="rex-icon fa-archive"></i> archivieren</a>';
+    } else {
+        $content .= '<span class="text text-muted"><i class="rex-icon fa-archive"></i> archivieren</span>';
+    }
+
+    return $content;
+});
+
+$list->setColumnSortable('article_updated');
+$list->setColumnSortable('article_published');
+$list->setColumnSortable('article_status');
+$list->setColumnSortable('blog_title');
+
+// generate output
+$content = $list->get();
+$fragment->setVar('content', $content, false);
 echo $fragment->parse('core/page/section.php');

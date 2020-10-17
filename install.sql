@@ -15,11 +15,11 @@ create table if not exists naju_blog_article (
 	article_blog int(10) unsigned not null,
 
 	-- further reading
-	article_link int(10) unsigned,
+	article_link int(10) unsigned default null,
 	article_link_text varchar(255) default '',
 
 	-- image
-	article_image varchar(255) default '',
+	article_image varchar(255) default null,
 
 	-- content
 	article_intro text not null,
@@ -32,5 +32,6 @@ create table if not exists naju_blog_article (
 
 	primary key (article_id),
 	foreign key fk_blog_rex_article (article_link) references rex_article(id),
-	foreign key fk_blog_article (article_blog) references naju_blog(blog_id)
+	foreign key fk_blog_article (article_blog) references naju_blog(blog_id),
+	foreign key fk_blog_iamge (article_image) references rex_media(filename)
 )
