@@ -3,13 +3,18 @@
 // Fetch available blogs
 
 if (rex::getUser()->isAdmin()) {
-    $blogs = rex_sql::factory()->getArray('SELECT blog_id, blog_title, group_name FROM naju_blog JOIN naju_local_group ON blog_group = group_id');
+    $query = 'SELECT blog_id, blog_title, group_name
+              FROM naju_blog JOIN naju_local_group
+              ON blog_group = group_id
+              ORDER BY group_name, blog_title';
+    $blogs = rex_sql::factory()->getArray($query);
 } else {
     $user_id = rex::getUser()->getId();
     $query = 'SELECT b.blog_id, b.blog_title, g.group_name
               FROM naju_blog b JOIN naju_local_group g JOIN naju_group_account a
               ON b.blog_group = g.group_id AND g.group_id = a.group_id
-              WHERE a.account_id = :id';
+              WHERE a.account_id = :id
+              ORDER BY g.group_name, b.blog_title';
     $blogs = rex_sql::factory()->getArray($query, ['id' => $user_id]);
 }
 
