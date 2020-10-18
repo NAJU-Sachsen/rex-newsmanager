@@ -22,7 +22,7 @@ if (in_array($func, ['add', 'edit'])) {
     $form->addParam('sorttype', rex_get('sorttype', 'string', ''));
     $form->addParam('start', rex_get('start', 'int', 0));
 
-    $field = $form->addTextField('blog_title', '', ['autocomplete' => 'off']);
+    $field = $form->addTextField('blog_title', null, ['autocomplete' => 'off']);
     $field->setLabel('Titel');
 
     $field = $form->addSelectField('blog_group');
