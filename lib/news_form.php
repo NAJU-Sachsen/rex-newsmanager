@@ -11,6 +11,11 @@ class naju_news_form extends rex_form {
         $this->intro_character_limit = $limit;
     }
 
+    public function getIntroCharacterLimit()
+    {
+        return $this->intro_character_limit;
+    }
+
     public function setGeneralFieldset($fieldset)
     {
         $this->general_fieldset = $fieldset;

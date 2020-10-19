@@ -101,6 +101,7 @@ $field->setLabel('Inhalt');
 $field->setAttribute('class', 'redactorEditor2-naju_newsmanager');
 
 $field = $form->addTextAreaField('article_intro');
+$field->setAttribute('maxlength', $form->getIntroCharacterLimit());
 $field->setLabel('Introtext');
 $field->setNotice('optional');
 
