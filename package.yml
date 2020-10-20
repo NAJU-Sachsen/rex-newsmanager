@@ -7,6 +7,7 @@ requires:
   php: '>=7.1'
   packages:
     naju_group_accounts: '>=0.0.1'
+    naju_rex_extensions: '>=0.0.6'
     redactor2: '>=4.0.0'
     cronjob: '>=2.7.0'
 page:
