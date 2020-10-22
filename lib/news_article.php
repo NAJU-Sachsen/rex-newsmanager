@@ -8,6 +8,9 @@ class naju_news_article
     {
         $article = new self;
         foreach ($data as $attr => $val) {
+            if (str_starts_with($attr, 'article_')) {
+                $attr = substr($attr, strlen('article_'));
+            }
             if (property_exists($article, $attr)) {
                 $article->{$attr} = $val;
             }
