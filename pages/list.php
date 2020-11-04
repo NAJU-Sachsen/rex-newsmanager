@@ -7,6 +7,7 @@ if ($func === 'archive') {
     $sql->setTable('naju_blog_article')
         ->setWhere('article_id = :id', ['id' => $article_id])
         ->setValue('article_status', 'archived')
+        ->setDateTimeValue('article_updated', time())
         ->update();
 } elseif ($func === 'publish') {
     $article_id = rex_get('article_id', 'int', -1);
