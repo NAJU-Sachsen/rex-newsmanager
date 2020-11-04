@@ -3,9 +3,11 @@ create table if not exists naju_blog (
 	blog_id int(10) unsigned not null auto_increment,
 	blog_title varchar(125) not null,
 	blog_group int(10) unsigned not null,
+	blog_page int(10) unsigned not null,
 
 	primary key (blog_id),
-	foreign key fk_blog_group (blog_group) references naju_local_group(group_id)
+	foreign key fk_blog_group (blog_group) references naju_local_group(group_id),
+	foreign key fk_blog_page (blog_page) references rex_article(id)
 );
 
 create table if not exists naju_blog_article (

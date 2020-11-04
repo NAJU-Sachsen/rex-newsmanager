@@ -24,6 +24,7 @@ if (in_array($func, ['add', 'edit'])) {
 
     $field = $form->addTextField('blog_title', null, ['autocomplete' => 'off']);
     $field->setLabel('Titel');
+    $field->setAttribute('required', 'true');
 
     $field = $form->addSelectField('blog_group');
     $field->setLabel('Zugehörige Ortsgruppe');
@@ -31,14 +32,21 @@ if (in_array($func, ['add', 'edit'])) {
     foreach ($local_groups as $group) {
         $select->addOption($group['group_name'], $group['group_id']);
     }
+    $field->setAttribute('required', 'true');
+
+    $field = $form->addLinkmapField('blog_page');
+    $field->setLabel('Blog Seite');
+    $field->setAttribute('required', 'true');
 
     $content = $form->get();
 } else {
     if (rex::getUser()->isAdmin()) {
-        $query = 'SELECT blog_id, blog_title, group_name FROM naju_blog JOIN naju_local_group ON blog_group = group_id ORDER BY group_name, blog_title';
+        $query = 'SELECT blog_id, blog_title, blog_page, group_name
+            FROM naju_blog JOIN naju_local_group ON blog_group = group_id
+            ORDER BY group_name, blog_title';
     } else {
         $user_id = rex::getUser()->getId();
-        $query = "SELECT b.blog_id, b.blog_title, g.group_name FROM naju_blog b JOIN naju_local_group g JOIN naju_group_account a
+        $query = "SELECT b.blog_id, b.blog_title, b.blog_page, g.group_name FROM naju_blog b JOIN naju_local_group g JOIN naju_group_account a
             ON b.blog_group = g.group_id AND g.group_id = a.group_id WHERE a.account_id = $user_id ORDER BY group_name, blog_title";
     }
     $list = rex_list::factory($query, 10, 'blogs');
@@ -50,11 +58,33 @@ if (in_array($func, ['add', 'edit'])) {
 
     $td_icon = '<i class="rex-icon fa-pencil-square-o"></i>';
 
+    $actions = 'Aktionen';
+
     $list->addColumn($th_icon, $td_icon, 0, ['<th class="rex-table-icon">###VALUE###</th>', '<td class="rex-table-icon">###VALUE###</td>']);
     $list->setColumnParams($th_icon, ['func' => 'edit', 'blog_id' => '###blog_id###', 'start' => rex_get('start', 'int', 0)]);
     $list->removeColumn('blog_id');
     $list->setColumnLabel('blog_title', 'Blog');
     $list->setColumnLabel('group_name', 'Ortsgruppe');
+    $list->setColumnLabel('blog_page', 'Artikel');
+    $list->addColumn($actions, '', -1, ['<th>###VALUE###</th>', '<td>###VALUE###</td>']);
+
+    $list->setColumnFormat('blog_page', 'custom', function ($params) {
+        $page = $params['list']->getValue('blog_page');
+        $article = rex_article::get($page);
+        $content = '<a href="' . rex_url::backendPage('content/edit', ['mode' => 'edit', 'article_id' => $page]) . '">';
+        $content .=     '<i class="rex-icon fa-file-text-o"></i> ';
+        $content .=     rex_escape($article->getName());
+        $content .= '</a>';
+        return $content;
+    });
+
+    $list ->setColumnFormat($actions, 'custom', function ($params) {
+        $blog = $params['list']->getValue('blog_id');
+        $content = '<a href="' . rex_url::currentBackendPage(['func' => 'edit', 'blog_id' => $blog]) . '">';
+        $content .= '   <i class="rex-icon fa-pencil-square-o"></i> bearbeiten';
+        $content .= '</a>';
+        return $content;
+    });
 
     $content = $list->get();
 }
