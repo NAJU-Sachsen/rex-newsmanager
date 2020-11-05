@@ -45,7 +45,7 @@ $actions = 'Aktionen';
 
 $list->addColumn($th_icon, $td_icon, 0, ['<th class="rex-table-icon">###VALUE###</th>', '<td class="rex-table-icon">###VALUE###</td>']);
 $list->setColumnParams($th_icon, ['page' => 'naju_newsmanager/compose', 'func' => 'edit', 'article_id' => '###article_id###', 'start' => rex_get('start', 'int', 0)]);
-$list->addColumn($actions, '', -1, ['<th>###VALUE###</th>', '<td>###VALUE###</td>']);
+$list->addColumn($actions, '', -1, ['<th colspan="3">###VALUE###</th>', '###VALUE###']);
 
 $list->removeColumn('article_id');
 $list->removeColumn('article_blog');
@@ -78,21 +78,21 @@ $list->setColumnFormat($actions, 'custom', static function($params) {
     $article_status = $list->getValue('article_status');
 
     $edit_url = rex_url::currentBackendPage(['page' => 'naju_newsmanager/compose', 'func' => 'edit', 'article_id' => $article_id, 'start' => rex_get('start', 'int', 0)]);
-    $content .= '<a href="' . $edit_url . '" class="text text-primary"><i class="rex-icon fa-pencil-square-o"></i> bearbeiten</a>' ;
+    $content .= '<td><a href="' . $edit_url . '" class="text text-primary"><i class="rex-icon fa-pencil-square-o"></i> bearbeiten</a></td>' ;
     $content .= '&nbsp;';
 
     if (in_array($article_status, ['pending', 'draft'])) {
-        $content .= '<a href="' . rex_url::currentBackendPage(['func' => 'publish', 'article_id' => $article_id]) . '" class="text text-success"><i class="rex-icon fa-laptop"></i> jetzt veröffentlichen</a>';
+        $content .= '<td><a href="' . rex_url::currentBackendPage(['func' => 'publish', 'article_id' => $article_id]) . '" class="text text-success"><i class="rex-icon fa-laptop"></i> jetzt veröffentlichen</a></td>';
     } else {
-        $content .= '<span class="text text-muted"><i class="rex-icon fa-laptop"></i> jetzt veröffentlichen</span>';
+        $content .= '<td><span class="text text-muted"><i class="rex-icon fa-laptop"></i> jetzt veröffentlichen</span></td>';
     }
 
     $content .= '&nbsp;';
 
     if ($article_status !== 'archived') {
-        $content .= '<a href="' . rex_url::currentBackendPage(['func' => 'archive', 'article_id' => $article_id]) . '"class="text text-danger" onclick="return confirm(\'Wirklich archivieren?\')"><i class="rex-icon fa-archive"></i> archivieren</a>';
+        $content .= '<td><a href="' . rex_url::currentBackendPage(['func' => 'archive', 'article_id' => $article_id]) . '"class="text text-danger" onclick="return confirm(\'Wirklich archivieren?\')"><i class="rex-icon fa-archive"></i> archivieren</a></td>';
     } else {
-        $content .= '<span class="text text-muted"><i class="rex-icon fa-archive"></i> archivieren</span>';
+        $content .= '<td><span class="text text-muted"><i class="rex-icon fa-archive"></i> archivieren</span></td>';
     }
 
     return $content;
