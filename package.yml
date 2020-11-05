@@ -1,5 +1,5 @@
 package: naju_newsmanager
-version: '0.3.0'
+version: '0.4.0'
 author: NAJU Sachsen
 supportpage: https://github.com/NAJU-Sachsen/rex-newsmanager
 requires:

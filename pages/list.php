@@ -36,6 +36,7 @@ if (rex::getUser()->isAdmin()) {
               ORDER BY a.article_updated DESC, a.article_published DESC, b.blog_title ASC, a.article_title ASC';
 }
 $list = rex_list::factory($query, 25, 'articles');
+$list->addTableAttribute('class', 'table-striped table-hover');
 
 $th_icon = '<a href="' . rex_url::backendController(['page' => 'naju_newsmanager/compose']) . '" title="' . rex_i18n::msg('add') . '">';
 $th_icon .= '<i class="rex-icon rex-icon-add-action"></i></a>';
