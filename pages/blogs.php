@@ -37,6 +37,8 @@ if (in_array($func, ['add', 'edit'])) {
     $field = $form->addLinkmapField('blog_page');
     $field->setLabel('Blog Seite');
     $field->setAttribute('required', 'true');
+    $field->setNotice('Auf der Seite muss ein Modul <code>[Blog] Beitragsliste</code> vorhanden sein. ' .
+        'Der "Weiterlesen" Link für <code>[Blog] Teaser</code> Module verweist dann auf diese Seite und zeigt den entsprechenden Artikel an.');
 
     $content = $form->get();
 } else {
